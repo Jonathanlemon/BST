@@ -186,50 +186,24 @@ Node *remove(Node *T, int k)
 // Split tree T on key k into tree L (containing keys <= k) and a tree R (containing keys > k)
 void split(Node *T, int k, Node **L, Node **R)
 {
-    vector<int> list=inorder_traversal(T);
-    vector<int> left;
-    vector<int> right;
-    int index;
-    //Create two vectors for the values on the left and on the right of k
-    for(int i=0;k>=list[i];i++){
-        left.push_back(list[i]);
-        index=i;
+    if(T==nullptr){
+        *L=nullptr;
+        *R=nullptr;
+        return;
     }
-    index++;
-    for(int i=index;i<list.size();i++){
-        right.push_back(list[i]);
+    else if(T->key<=k){//split right
+        (*L)=T;
+        split(T->right, k, &((*L)->right), R);
+        fix_size(T);
     }
-    Node* l=nullptr;
-    Node* r=nullptr;
-    //Insert these values into two trees
-    for(int i=0;i<left.size();i++){
-        l=insert(l, left[i]);
+    else{//split left
+        (*R)=T;
+        split(T->left, k, L, &((*R)->left));
+        fix_size(T);
     }
-    for(int i=0;i<right.size();i++){
-        r=insert(r, right[i]);
-    }
-    //"Return" the trees
-    *L=l;
-    *R=r;
   //Implement void split(Node *T, int k, Node **L, Node **R)
 }
-
-// insert key k into the tree T, returning a pointer to the resulting tree
-
-vector<int> insertionPath(Node* T, int k, vector<int> path){
-    if(T==nullptr){
-        return path;
-    }
-    if(k>=T->key){
-        path.push_back(1);
-        return insertionPath(T->right, k, path);
-    }
-    else{
-        path.push_back(-1);
-        return insertionPath(T->left, k, path);
-    }
-}
-
+/*
 Node* findParent(Node* child, Node* root){
     if(root==nullptr){
         return nullptr;
@@ -254,7 +228,7 @@ Node* findParent(Node* child, Node* root){
         return findParent(child, root->left);
     }
 }
-
+*/
 void printVector(vector<int> v)
 {
     for (int i=0; i<v.size(); i++)
@@ -262,7 +236,7 @@ void printVector(vector<int> v)
         cout << v[i] << " ";
     }
 }
-
+/*
 Node* rotateRight(Node* left, Node* oldHead, Node* root){
     Node* grandparent=findParent(oldHead, root);
     int oS=0;
@@ -317,13 +291,11 @@ Node* rotateLeft(Node* right, Node* oldHead, Node* root){
     return right;
     
 }
-
-int height=0;
+*/
 
 Node *insert_random(Node *T, int k)
 {
     //Random seed
-    if(find(T,k)==nullptr){
     if(T==nullptr){
         //If 1 element, always make it head
         return insert(T,k);//This function has been implemented previously, and works fine
@@ -331,24 +303,16 @@ Node *insert_random(Node *T, int k)
     else{
         //Based on size of T, determine odds of making this the head
         float percent=(1.0/T->size);
-        int num=(rand()%1000);//Random 1-1000
+        float num=(float)(float(rand())/RAND_MAX);//Random 0-999
         //This line basically randomly chooses if the insertion should be the head
-        if(num<(int)(1000)){
-            vector<int> path=insertionPath(T, k, vector<int>());
-            insert(T, k);
-            Node* newRoot=find(T, k);
-            if(path.size()>height){
-                height=path.size();
-            }
-            while(path.size()>0){
-                if(path[path.size()-1]==1){
-                    newRoot=rotateLeft(newRoot, findParent(newRoot, T), T);
-                }
-                if(path[path.size()-1]==-1){
-                    newRoot=rotateRight(newRoot, findParent(newRoot, T), T);
-                }
-                path.pop_back();
-            }
+        if(num<percent){
+            Node* newRoot=new Node(k);
+            Node* L=nullptr;
+            Node* R=nullptr;
+            split(T, k, &L, &R);
+            newRoot->left=L;
+            newRoot->right=R;
+            fix_size(newRoot);
             return newRoot;
         }
         else{
@@ -362,7 +326,6 @@ Node *insert_random(Node *T, int k)
             }
         }
     }
-    }
     return T;
   // If k is the Nth node inserted into T, then:
   // with probability 1/N, insert k at the root of T
@@ -374,25 +337,41 @@ int main(void)
 {
     srand(time(0));
     Node* T = nullptr;
-    int num[1000000];
-    for(int i=0;i<1000000;i++){
+    T=insert(T, 10);
+    for(int i=0;i<30;i++){
+        int num=rand()%40;
+        if(find(T, num)==nullptr)
+        T=insert(T, rand()%40);
+    }
+    Node* L=nullptr;
+    Node* R=nullptr;
+    split(T, 10, &L, &R);
+    vector<int> lVal=inorder_traversal(L);
+    vector<int> rVal=inorder_traversal(R);
+    printVector(lVal);
+    cout<<endl;
+    printVector(rVal);
+    cout<<endl;
+    int num[30];
+    for(int i=0;i<30;i++){
         num[i]=i;
     }
-    for(int i=0;i<1000000;i++){
-        int index=(rand()^2)%1000000;
+    for(int i=0;i<30;i++){
+        int index=rand()%30;
         int temp=num[i];
         num[i]=num[index];
         num[index]=temp;
         cout<<num[i]<<" ";
     }
     cout<<"SORTED:"<<endl;
-    for(int i=0;i<1000000;i++){
+    for(int i=0;i<30;i++){
         T=insert_random(T, num[i]);
     }
     cout<<T->size<<endl;
     vector<int> inorder=inorder_traversal(T);
     printVector(inorder);
-    cout<<"Height: "<<height<<endl;
+    
+    
 
   return 0;
 }
