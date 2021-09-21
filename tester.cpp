@@ -1,9 +1,3 @@
-/*
- * Name: Jonathan Lemon
- * Date Submitted: 3/22/2021
- * Lab Section: 002
- * Assignment Name: Lab 7
- */
 
 #include <iostream>
 #include <vector>
